@@ -1,0 +1,15 @@
+Initial Distance Table:
+   0   2   5   1        
+   2   0   3   2        
+   5   3   0   3   1   5
+   1   2   3   0   1    
+           1   1   0   2
+           5       2   0
+Dijkstra Result:
+Spanning Tree: ADCEFB
+(Destination, Previous node, Distance)
+(B,A,2)
+(C,D,4)
+(D,A,1)
+(E,D,2)
+(F,E,4)
