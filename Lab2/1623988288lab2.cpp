@@ -30,7 +30,6 @@ vector<vector<int>> inputGraph(const string& filename) {
 	size_t V = 0;
 
 	if (file.is_open()) {
-		// Make sure all rows have the same number of cells
 		// read the file character by character
 		while (file.get(ch)) {
 			if (ch == ',') {
@@ -98,6 +97,7 @@ int minDistance (const vector<int> &dist, const vector<bool> &visited) {
 	return min_index;
 }
 
+// print out the result of Dijkstra's Algorithm
 void printDijkstra (const vector<int> &dist, const vector<int>& prev, int V, int source, const vector<int>& path) {
 	cout << "Dijkstra Result:" << endl;
 	cout << "Spanning Tree: ";
@@ -130,9 +130,9 @@ void dijkstra (const vector<vector<int>>& graph, int source) {
 	// distance from source node to itself is 0
 	dist[source] = 0;
 
-	for (int count = 0; count < V; count++) {
+	for (int u : dist) {
 		// find the vertex with minimum distance value
-		int u = minDistance(dist, visited);
+		u = minDistance(dist, visited);
 		// mark the vertex as visited
 		visited[u] = true;
 		// add the vertex to the path
