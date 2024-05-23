@@ -25,3 +25,5 @@ Instructions:
 command line input
     $ g++ -g -Wall 1623988288lab2.cpp -o 1623988288lab2
     $ ./1623988288lab2
+About the code:
+    You can change the constant variable ID_FIRSTDIGIT for the first digit of the student ID
