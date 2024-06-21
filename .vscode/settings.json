@@ -4,6 +4,8 @@
         "xstring": "cpp",
         "ostream": "cpp",
         "iostream": "cpp",
-        "string": "cpp"
-    }
+        "string": "cpp",
+        "iosfwd": "cpp"
+    },
+    "C_Cpp.default.compilerPath": "/mnt/c/msys64/ucrt64/bin/g++.exe"
 }

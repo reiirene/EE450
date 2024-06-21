@@ -1,0 +1,1 @@
+Start your programs in the order of the main serverM, serverC, serverRTH, serverEEB, and two Clients.
