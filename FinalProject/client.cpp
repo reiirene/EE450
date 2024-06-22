@@ -5,8 +5,6 @@
 
 #include "client.h"
 
-int loggedIn = 0;
-string status = "";
 Client user;
 
 string parseMessageType (const string &data) {
@@ -68,6 +66,7 @@ void clientLogin (int clientSocket) {
 
         if (user.password.empty()) {
             string message = enc_username;
+            message = packageMessage(message, "AuthenticationRequest");
             if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
                 cerr << "Error sending data" << endl;
                 return;
@@ -79,6 +78,7 @@ void clientLogin (int clientSocket) {
 
             // Send username and password to serverM
             string message = enc_username + " " + enc_password;
+            message = packageMessage(message, "AuthenticationRequest");
             if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
                 cerr << "Error sending data" << endl;
                 return;
@@ -94,25 +94,25 @@ void clientLogin (int clientSocket) {
         }
 
         // Check authentication result
-        status = buffer;
-        if (status.compare("guest") == 0) {
+        user.status = buffer;
+        cout << "The client received the response from the main server: " << user.status << endl;
+        user.status = parseMessage(user.status);
+        if (user.status == "guest") {
             cout << "Welcome guest " << user.username << "!" << endl;
-            loggedIn = 1;  // Update login status
             return;
-        } else if (status.compare("valid") == 0) {
+        } else if (user.status == "valid") {
             cout << "Welcome member " << user.username << "!" << endl;
-            loggedIn = 1;  // Update login status
             return;
-        } else if (status.compare("user_not_found") == 0) {
+        } else if (user.status == "user_not_found") {
             cout << "Failed login: Username does not exist." << endl;
             user.username = "";
             user.password = "";
-        } else if (status.compare("incorrect_password") == 0) {
+            user.status = "";
+        } else if (user.status == "incorrect_password") {
             cout << "Failed login: Password does not match." << endl;
             user.username = "";
             user.password = "";
-        } else {
-            cout << "Unknown status." << endl;
+            user.status = "";
         }
     }
 }
@@ -195,13 +195,12 @@ void reservationRequest (int clientSocket, const string &room, const string &day
 
     // Get client's port number
     int clientPort = ntohs(clientAddr.sin_port);
-    cout << "The client received the response from the main server using TCP over port " << clientPort << endl;
+    cout << "The client received the response from the main server using TCP over port " << clientPort  << "." << endl;
 
     // Print reservation result
     string response = buffer;
     response = parseMessage(response);
     
-    cout << response << endl;
     // Print reservation result
     if (response.compare("success") == 0) {
         cout << "Congratulation! The reservation for Room " << room << " has been made." << endl;
@@ -250,7 +249,7 @@ void memberClient (int clientSocket, struct sockaddr_in clientAddr) {
             }
 
             cout << "Would you like to search for the availability or make a reservation? ";
-            cout << "(Enter “Availability” to search for the availability or Enter “Reservation” to make a reservation): " << endl;
+            cout << "(Enter “Availability” to search for the availability or Enter “Reservation” to make a reservation): ";
             getline(cin, action);
 
         } else {
@@ -263,7 +262,7 @@ void memberClient (int clientSocket, struct sockaddr_in clientAddr) {
 
                 return;
             } else {
-                cout << "Invalid action." << endl;
+                cout << "Invalid request" << endl;
                 return;
             }
         }
@@ -312,6 +311,9 @@ void guestClient(int clientSocket, struct sockaddr_in clientAddr) {
 
                 return;
             } else if (action == "Reservation" || action == "reservation") {
+                reservationRequest(clientSocket, room, day, times, hour, period, action, clientAddr);
+
+                return;
                 
             } else {
                 cout << "Invalid action." << endl;
@@ -348,21 +350,21 @@ int main() {
 
     while (true) {
         // Client Login
-        if (loggedIn == 0) {
+        if (user.status == "") {
             clientLogin(clientSocket);
         }
 
-        // Accomodate member client
-        if (loggedIn == 1 && status.compare("valid") == 0) {
+        // Room reservation system
+        if (user.status == "valid") {   // Accomodate member client
             memberClient(clientSocket, clientAddr);
-        } else if (loggedIn == 1 && status.compare("guest") == 0) {
+        } else if (user.status == "guest") {    // Accomodate guest client
             guestClient(clientSocket, clientAddr);
         }
     }
 
-
     // Close socket
     close(clientSocket);
+    cout << "Disconnected from server. Client exiting..." << endl;
 
     return 0;
 }

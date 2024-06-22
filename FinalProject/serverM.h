@@ -15,29 +15,38 @@
 #include <arpa/inet.h>
 #include <unistd.h>
 #include <errno.h>
+#include <vector>
+#include <sstream>
+#include <thread>
+#include <signal.h>
+#include <map>
 
 using namespace std;
 
 struct Client {
     string username;
     string password;
+    string status;
 };
 
-#define SERVER_M_UDP_PORT 34288
+#define CLIENT_M_UDP_PORT 34288
 #define SERVER_M_TCP_PORT 35288
 #define SERVER_C_PORT 31288
 #define SERVER_RTH_PORT 32288
 #define SERVER_EEB_PORT 33288
 #define BUFFER_SIZE 1024
+#define MAX_CLIENTS 10
 
 // Function declarations
 string parseMessageType (const string &data);
 string parseMessage (const string &data);
-string packageMessage (const string &message, const string &type);
+string parseRequestID (const string &data);
+string packageMessage (const string &message, const string &type, const string &requestID, const string &receiver);
+// void bootCheck (int udpSocket, struct sockaddr_in clientAddr, socklen_t clientAddrLen);
 void clientRequest (int clientSocket, int udpSocketRTH, int udpSocketEEB, string &request, string &requestType, struct sockaddr_in serverRTHAddr, struct sockaddr_in serverEEBAddr);
-void handleClient (int clientSocket, int udpSocketC, struct sockaddr_in serverCAddr, int udpSocketRTH, struct sockaddr_in serverRTHAddr, int udpSocketEEB, struct sockaddr_in serverEEBAddr);
-void handleServerC (int udpSocketC, int tcpClientSocket);
-void handleServerRTH (int udpSocketRTH, int tcpClientSocket);
-void handleServerEEB (int udpSocketEEB, int tcpClientSocket);
-
+void handleClient (int clientSocket, int udpSocket, struct sockaddr_in serverCAddr, struct sockaddr_in serverRTHAddr, struct sockaddr_in serverEEBAddr);
+void handleServer (int udpSocket, struct sockaddr_in serverCAddr, struct sockaddr_in serverRTHAddr, struct sockaddr_in serverEEBAddr);
+// string handleServerC (int udpSocketC, const struct sockaddr_in &serverCAddr, const char *request);
+// string handleServerRTH (int udpSocketRTH, const struct sockaddr_in &serverRTHAddr, string &request, string &requestType);
+// string handleServerEEB (int udpSocketEEB, const struct sockaddr_in &serverEEBAddr, string &request, string &requestType);
 #endif // SERVERM_H

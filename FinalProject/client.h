@@ -22,6 +22,7 @@ using namespace std;
 struct Client {
     string username;
     string password;
+    string status;
 };
 
 #define SERVER_M_TCP_PORT 35288

@@ -17,22 +17,22 @@ EXECUTABLES = $(SOURCES:.cpp=)
 all: $(EXECUTABLES)
 
 serverM: serverM.o
-    $(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 serverC: serverC.o
-    $(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 serverRTH: serverRTH.o
-    $(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 serverEEB: serverEEB.o
-    $(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 client: client.o
-    $(CXX) $(LDFLAGS) -o $@ $^
+	$(CXX) $(LDFLAGS) -o $@ $^
 
 %.o: %.cpp
-    $(CXX) $(CXXFLAGS) -c $< -o $@
+	$(CXX) $(CXXFLAGS) -c $< -o $@
 
 clean:
-    rm -f $(OBJECTS) $(EXECUTABLES)
+	rm -f $(OBJECTS) $(EXECUTABLES)

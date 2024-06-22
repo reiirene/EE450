@@ -19,13 +19,14 @@
 using namespace std;
 
 #define SERVER_C_PORT 31288
-#define SERVER_M_PORT 34288
+#define CLIENT_M_PORT 34288
 #define BUFFER_SIZE 1024
 
 // Function declarations
 string parseMessageType (const string &data);
+string parseRequestID (const string &data);
 string parseMessage (const string &data);
-string packageMessage (const string &message, const string &type);
+string packageMessage (const string &message, const string &type, const string &requestID);
 string authenticate (const string &username, const string &password);
 
 #endif // SERVERC_H

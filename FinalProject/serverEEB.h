@@ -21,13 +21,14 @@
 using namespace std;
 
 #define SERVER_EEB_PORT 33288
-#define SERVER_M_PORT 34288
+#define CLIENT_M_PORT 34288
 #define BUFFER_SIZE 1024
 
 // Function declarations
 string parseMessageType (const string &data);
 string parseMessage (const string &data);
-string packageMessage (const string &message, const string &type);
+string parseRequestID (const string &data);
+string packageMessage (const string &message, const string &type, const string &requestID);
 string roomReservation (int udpSocket, const string &room, const string &day, const string &times, vector<string> &reservedRooms);
 string searchAvailability (int udpSocket, const string &room, const string &day, const string &times, const vector<string> &reservedRooms);
 

@@ -17,16 +17,27 @@ string parseMessageType (const string &data) {
     return "";
 }
 
-string parseMessage (const string &data) {
-    size_t message_pos = data.find("&");
-    if (message_pos != string::npos) {
-        return data.substr(message_pos + 1);
+string parseRequestID (const string &data) {
+    size_t requestID_pos = data.find_last_of("*");
+    if (requestID_pos != string::npos) {
+        return data.substr(requestID_pos + 1);
     }
     return "";
 }
 
-string packageMessage (const string &message, const string &type) {
-    return "MessageType=" + type + "&" + message;
+string parseMessage (const string &data) {
+    size_t message_pos = data.find("&");
+    if (message_pos != string::npos) {
+        size_t requestID_pos = data.find_last_of("*");
+        if (requestID_pos != string::npos) {
+            return data.substr(message_pos + 1, requestID_pos - message_pos - 1);
+        }
+    }
+    return "";
+}
+
+string packageMessage (const string &message, const string &type, const string &requestID) {
+    return "MessageType=" + type + "&" + message + "*" + requestID;
 }
 
 string roomReservation (int udpSocket, const string &room, const string &day, const string &times, vector<string> &reservedRooms) {
@@ -69,7 +80,6 @@ string searchAvailability (int udpSocket, const string &room, const string &day,
         }
 
         if (day == "empty" && times == "empty"){    // if day and time are empty
-            cout << "here" << endl;
             if (fileRoom == room) {
                 if (reservedRooms.empty()) {
                     result += fileDay + ", " + fileTime + "\n";
@@ -158,6 +168,7 @@ int main() {
     // Bind socket to port
     if (bind(udpSocket, (struct sockaddr *)&serverEEBAddr, sizeof(serverEEBAddr)) < 0) {
         cerr << "Bind failed" << endl;
+        close(udpSocket);
         return -1;
     }
 
@@ -166,7 +177,7 @@ int main() {
     // Set up serverM address
     memset(&serverMAddr, 0, sizeof(serverMAddr));
     serverMAddr.sin_family = AF_INET;
-    serverMAddr.sin_port = htons(SERVER_M_PORT);
+    serverMAddr.sin_port = htons(CLIENT_M_PORT);
     serverMAddr.sin_addr.s_addr = INADDR_ANY;
 
     // Send boot message to main server
@@ -186,9 +197,10 @@ int main() {
         }
         
         // Extract message to determine request type
-        string requestType;
+        string requestType, requestID;
         string request = buffer;
         requestType = parseMessageType(request);
+        requestID = parseRequestID(request);
         request = parseMessage(request);
 
         stringstream message(request);
@@ -230,7 +242,7 @@ int main() {
                 cout << "Not able to find the room " << room << endl;
             }
 
-            response = packageMessage(response, "AvailabilityResponse");
+            response = packageMessage(response, "AvailabilityResponse", requestID);
             if (sendto(udpSocket, response.c_str(), response.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
                 cerr << "Error sending availability response" << endl;
                 return -1;
@@ -240,7 +252,7 @@ int main() {
             // Make a reservation
             cout << "The Server <EEB> received a reservation request from the main server." << endl;
             string response = roomReservation(udpSocket, room, day, times, reservedRooms);
-            response = packageMessage(response, "ReservationResponse");
+            response = packageMessage(response, "ReservationResponse", requestID);
             if (sendto(udpSocket, response.c_str(), response.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
                 cerr << "Error sending reservation response" << endl;
                 return -1;

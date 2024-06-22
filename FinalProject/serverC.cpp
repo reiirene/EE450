@@ -5,6 +5,40 @@
 
 #include "serverC.h"
 
+string parseMessageType (const string &data) {
+    size_t type_pos = data.find("MessageType=");
+    if (type_pos != string::npos) {
+        size_t type_end = data.find("&", type_pos);
+        if (type_end != string::npos) {
+            return data.substr(type_pos + 12, type_end - type_pos - 12);    // 12 is the length of "MessageType="
+        }
+    }
+    return "";
+}
+
+string parseRequestID (const string &data) {
+    size_t requestID_pos = data.find_last_of("*");
+    if (requestID_pos != string::npos) {
+        return data.substr(requestID_pos + 1);
+    }
+    return "";
+}
+
+string parseMessage (const string &data) {
+    size_t message_pos = data.find("&");
+    if (message_pos != string::npos) {
+        size_t requestID_pos = data.find_last_of("*");
+        if (requestID_pos != string::npos) {
+            return data.substr(message_pos + 1, requestID_pos - message_pos - 1);
+        }
+    }
+    return "";
+}
+
+string packageMessage (const string &message, const string &type, const string &requestID) {
+    return "MessageType=" + type + "&" + message + "*" + requestID;
+}
+
 string authenticate (const string &username, const string &password) {
     // Go through members.txt and check if username and password are valid
     ifstream file("member.txt");
@@ -48,9 +82,11 @@ int main() {
     serverCAddr.sin_port = htons(SERVER_C_PORT);
     serverCAddr.sin_addr.s_addr = INADDR_ANY;
 
+    
     // Bind socket to port
     if (bind(udpSocket, (struct sockaddr *)&serverCAddr, sizeof(serverCAddr)) < 0) {
         cerr << "Bind failed with " << strerror(errno) << endl;
+        close(udpSocket);
         return -1;
     }
 
@@ -59,7 +95,7 @@ int main() {
     // Set up serverM address
     memset(&serverMAddr, 0, sizeof(serverMAddr));
     serverMAddr.sin_family = AF_INET;
-    serverMAddr.sin_port = htons(SERVER_M_PORT);
+    serverMAddr.sin_port = htons(CLIENT_M_PORT);
     serverMAddr.sin_addr.s_addr = INADDR_ANY;
 
     // Send boot message to main server
@@ -81,6 +117,8 @@ int main() {
 
         // Extract username and password
         string message = buffer;
+        string requestID = parseRequestID(message);
+        message = parseMessage(message);
         size_t pos = message.find(" ");
         string username = message.substr(0, pos);
         string password = message.substr(pos + 1);
@@ -89,6 +127,7 @@ int main() {
         string response = authenticate(username, password);
 
         // Send authentication result to main server
+        response = packageMessage(response, "AuthenticationResponse", requestID);
         if (sendto(udpSocket, response.c_str(), response.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
             cerr << "Send failed" << endl;
             return -1;
