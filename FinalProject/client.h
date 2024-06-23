@@ -25,6 +25,7 @@ struct Client {
     string status;
 };
 
+#define HOST "127.0.0.1"
 #define SERVER_M_TCP_PORT 35288
 #define BUFFER_SIZE 1024
 

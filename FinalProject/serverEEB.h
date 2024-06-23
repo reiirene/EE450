@@ -20,6 +20,7 @@
 
 using namespace std;
 
+#define HOST "127.0.0.1"
 #define SERVER_EEB_PORT 33288
 #define CLIENT_M_PORT 34288
 #define BUFFER_SIZE 1024

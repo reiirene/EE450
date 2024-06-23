@@ -163,7 +163,7 @@ int main() {
     memset(&serverEEBAddr, 0, sizeof(serverEEBAddr));
     serverEEBAddr.sin_family = AF_INET;
     serverEEBAddr.sin_port = htons(SERVER_EEB_PORT);
-    serverEEBAddr.sin_addr.s_addr = INADDR_ANY;
+    serverEEBAddr.sin_addr.s_addr = inet_addr(HOST);
 
     // Bind socket to port
     if (bind(udpSocket, (struct sockaddr *)&serverEEBAddr, sizeof(serverEEBAddr)) < 0) {
@@ -178,12 +178,12 @@ int main() {
     memset(&serverMAddr, 0, sizeof(serverMAddr));
     serverMAddr.sin_family = AF_INET;
     serverMAddr.sin_port = htons(CLIENT_M_PORT);
-    serverMAddr.sin_addr.s_addr = INADDR_ANY;
+    serverMAddr.sin_addr.s_addr = inet_addr(HOST);
 
     // Send boot message to main server
     string bootMsg = "boot";
     if (sendto(udpSocket, bootMsg.c_str(), bootMsg.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
-        cerr << "Error sending boot message" << endl;
+        // cerr << "Error sending boot message" << endl;
         return -1;
     }
     cout << "Server EEB has informed the main server." << endl;
@@ -192,7 +192,7 @@ int main() {
     while (true) {
         memset(buffer, 0, sizeof(buffer));  // clear buffer
         if (recvfrom(udpSocket, buffer, sizeof(buffer), 0, (struct sockaddr *)&serverMAddr, &serverMAddrLen) < 0) {
-            cerr << "Receive failed" << endl;
+            // cerr << "Receive failed" << endl;
             return -1;
         }
         
@@ -244,7 +244,7 @@ int main() {
 
             response = packageMessage(response, "AvailabilityResponse", requestID);
             if (sendto(udpSocket, response.c_str(), response.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
-                cerr << "Error sending availability response" << endl;
+                // cerr << "Error sending availability response" << endl;
                 return -1;
             }
             cout << "The Server <EEB> finished sending the response to the main server." << endl;
@@ -254,12 +254,12 @@ int main() {
             string response = roomReservation(udpSocket, room, day, times, reservedRooms);
             response = packageMessage(response, "ReservationResponse", requestID);
             if (sendto(udpSocket, response.c_str(), response.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
-                cerr << "Error sending reservation response" << endl;
+                // cerr << "Error sending reservation response" << endl;
                 return -1;
             }
             cout << "The Server <EEB> finished sending the response to the main server." << endl;
         } else {
-            cerr << "Invalid action" << endl;
+            // cerr << "Invalid action" << endl;
         }
 
     }

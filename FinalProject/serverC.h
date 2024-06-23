@@ -18,6 +18,7 @@
 
 using namespace std;
 
+#define HOST "127.0.0.1"
 #define SERVER_C_PORT 31288
 #define CLIENT_M_PORT 34288
 #define BUFFER_SIZE 1024

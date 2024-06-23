@@ -50,6 +50,7 @@ string packageMessage (const string &message, const string &type, const string &
     return "";
 }
 
+// Handles client request for availability or reservation
 void clientRequest (int clientSocket, int udpSocket, string &request, string &requestType, string &requestID, struct sockaddr_in serverRTHAddr, struct sockaddr_in serverEEBAddr) {
     stringstream ss(request);
     string word;
@@ -84,7 +85,7 @@ void clientRequest (int clientSocket, int udpSocket, string &request, string &re
             string response = "Permission denied: Guest cannot make a reservation.";
             response = packageMessage(response, "ReservationResponse", requestID, "client");
             if (send(clientSocket, response.c_str(), response.size(), 0) < 0) {
-                cerr << "Send failed" << endl;
+                // cerr << "Send failed" << endl;
                 return;
             }
             cout << "The main server sent the error message to the client." << endl;
@@ -99,7 +100,7 @@ void clientRequest (int clientSocket, int udpSocket, string &request, string &re
         request = packageMessage(request, requestType, requestID, "server");
 
         if (sendto(udpSocket, request.c_str(), request.size(), 0, (struct sockaddr *)&serverRTHAddr, sizeof(serverRTHAddr)) < 0) {
-            cerr << "Send failed" << endl;
+            // cerr << "Send failed" << endl;
             return;
         }
 
@@ -109,7 +110,7 @@ void clientRequest (int clientSocket, int udpSocket, string &request, string &re
         request = packageMessage(request, requestType, requestID, "server");
 
         if (sendto(udpSocket, request.c_str(), request.size(), 0, (struct sockaddr *)&serverEEBAddr, sizeof(serverEEBAddr)) < 0) {
-            cerr << "Send failed" << endl;
+            // cerr << "Send failed" << endl;
             return;
         }
 
@@ -117,6 +118,7 @@ void clientRequest (int clientSocket, int udpSocket, string &request, string &re
 
 }
 
+// Handles incoming messages from TCP clients
 void handleClient (int clientSocket, int udpSocket, struct sockaddr_in serverCAddr, struct sockaddr_in serverRTHAddr, struct sockaddr_in serverEEBAddr) {
     Client user;
     string request, requestType, requestID;
@@ -164,7 +166,7 @@ void handleClient (int clientSocket, int udpSocket, struct sockaddr_in serverCAd
             cout << "The main server accepts " << user.username << " as a guest." << endl;
             string response = packageMessage(user.status, "AuthenticationResponse", requestID, "client");
             if (send(clientSocket, response.c_str(), response.length(), 0) < 0) {
-                cerr << "Send failed" << endl;
+                // cerr << "Send failed" << endl;
                 return;
             }
         } else {
@@ -176,7 +178,7 @@ void handleClient (int clientSocket, int udpSocket, struct sockaddr_in serverCAd
 
             // Send authentication request to serverC
             if (sendto(udpSocket, request.c_str(), request.size(), 0, (struct sockaddr *)&serverCAddr, sizeof(serverCAddr)) < 0) {
-                cerr << "Send failed" << endl;
+                // cerr << "Send failed" << endl;
                 return;
             }
             cout << "The main server forwarded the authentication for ";
@@ -259,7 +261,7 @@ void handleServer (int udpSocket, struct sockaddr_in serverCAddr, struct sockadd
                 // Send authentication result to client
                 response = packageMessage(response, responseType, requestID, "client");
                 if (send(clientSocket, response.c_str(), response.length(), 0) < 0) {
-                    cerr << "Send to client failed due to " << strerror(errno) << endl;
+                    // cerr << "Send to client failed due to " << strerror(errno) << endl;
                     return;
                 }
                 cout << "The main server sent the authentication result to the client." << endl;
@@ -267,7 +269,7 @@ void handleServer (int udpSocket, struct sockaddr_in serverCAddr, struct sockadd
                 // Send availability information to client
                 response = packageMessage(response, responseType, requestID, "client");
                 if (send(clientSocket, response.c_str(), response.length(), 0) < 0) {
-                    cerr << "Send to client failed due to " << strerror(errno) << endl;
+                    // cerr << "Send to client failed due to " << strerror(errno) << endl;
                     return;
                 }
                 cout << "The main server sent the availability information to the client." << endl;
@@ -275,7 +277,7 @@ void handleServer (int udpSocket, struct sockaddr_in serverCAddr, struct sockadd
                 // Send reservation result to client
                 response = packageMessage(response, responseType, requestID, "client");
                 if (send(clientSocket, response.c_str(), response.length(), 0) < 0) {
-                    cerr << "Send to client failed due to " << strerror(errno) << endl;
+                    // cerr << "Send to client failed due to " << strerror(errno) << endl;
                     return;
                 }
                 cout << "The main server sent the reservation result to the client." << endl;
@@ -289,7 +291,8 @@ int main() {
     struct sockaddr_in serverCAddr, serverRTHAddr, serverEEBAddr, tcpAddr, udpAddr;
 
     signal(SIGINT, (__sighandler_t)([](int signum) {
-        cout << "\nInterrupt signal (" << signum << ") received. Shutting down the server..." << endl;
+        // Debugging: shows information about the interrupt signal
+        //cout << "\nInterrupt signal (" << signum << ") received. Shutting down the server..." << endl;
     
         // Close all client sockets
         for (int clientSocket : clientSockets) {
@@ -307,7 +310,7 @@ int main() {
     // Create TCP socket
     tcpSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (tcpSocket < 0) {
-        cerr << "TCP socket creation error" << endl;
+        // cerr << "TCP socket creation error" << endl;
         return -1;
     }
 
@@ -315,7 +318,7 @@ int main() {
     // Setsockopt for TCP socket
     int opt = 1;    
     if (setsockopt(tcpSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) < 0) {
-        cerr << "Setsockopt failed" << endl;
+        // cerr << "Setsockopt failed" << endl;
         return -1;
     }
     
@@ -323,13 +326,13 @@ int main() {
     // Create UDP socket
     udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
     if (udpSocket < 0) {
-        cerr << "UDP socket creation error" << endl;
+        // cerr << "UDP socket creation error" << endl;
         return -1;
     }
     
     // Setsockopt for UDP socket  
     if (setsockopt(udpSocket, SOL_SOCKET, SO_REUSEADDR, &opt, sizeof(int)) < 0) {
-        cerr << "Setsockopt failed" << endl;
+        // cerr << "Setsockopt failed" << endl;
         return -1;
     }
 
@@ -337,45 +340,45 @@ int main() {
     memset(&udpAddr, 0, sizeof(udpAddr));
     udpAddr.sin_family = AF_INET;
     udpAddr.sin_port = htons(CLIENT_M_UDP_PORT);
-    udpAddr.sin_addr.s_addr = INADDR_ANY;
+    udpAddr.sin_addr.s_addr = inet_addr(HOST);
 
     // Set up UDP server addresses
     memset(&serverCAddr, 0, sizeof(serverCAddr));   // Server C
     serverCAddr.sin_family = AF_INET;
     serverCAddr.sin_port = htons(SERVER_C_PORT);
-    serverCAddr.sin_addr.s_addr = INADDR_ANY;
+    serverCAddr.sin_addr.s_addr = inet_addr(HOST);
     
     memset(&serverRTHAddr, 0, sizeof(serverRTHAddr));   // Server RTH
     serverRTHAddr.sin_family = AF_INET;
     serverRTHAddr.sin_port = htons(SERVER_RTH_PORT);
-    serverRTHAddr.sin_addr.s_addr = INADDR_ANY;
+    serverRTHAddr.sin_addr.s_addr = inet_addr(HOST);
     
     memset(&serverEEBAddr, 0, sizeof(serverEEBAddr));   // Server EEB
     serverEEBAddr.sin_family = AF_INET;
     serverEEBAddr.sin_port = htons(SERVER_EEB_PORT);
-    serverEEBAddr.sin_addr.s_addr = INADDR_ANY;
+    serverEEBAddr.sin_addr.s_addr = inet_addr(HOST);
 
     // Set up TCP server address
     memset(&tcpAddr, 0, sizeof(tcpAddr));
     tcpAddr.sin_family = AF_INET;
     tcpAddr.sin_port = htons(SERVER_M_TCP_PORT);
-    tcpAddr.sin_addr.s_addr = INADDR_ANY;
+    tcpAddr.sin_addr.s_addr = inet_addr(HOST);
 
     // Bind TCP socket
     if (bind(tcpSocket, (struct sockaddr *)&tcpAddr, sizeof(tcpAddr)) < 0) {
-        cerr << "TCP bind failed due to " << strerror(errno) << endl;
+        // cerr << "TCP bind failed due to " << strerror(errno) << endl;
         return -1;
     }
 
     // Bind UDP socket
     if (bind(udpSocket, (struct sockaddr *)&udpAddr, sizeof(udpAddr)) < 0) {
-        cerr << "UDP bind failed" << endl;
+        // cerr << "UDP bind failed" << endl;
         return -1;
     }
 
     // Listen on TCP socket
     if (listen(tcpSocket, 5) < 0) {
-        cerr << "Listen failed" << endl;
+        // cerr << "Listen failed" << endl;
         return -1;
     }
 
@@ -421,7 +424,7 @@ int main() {
         // Wait for activity on one of the sockets
         activity = select(max_sd + 1, &readfds, NULL, NULL, NULL);
         if ((activity < 0) && (errno != EINTR)) {
-            cerr << "Select error" << endl;
+            // cerr << "Select error" << endl;
             return -1;
         }
 
@@ -430,7 +433,7 @@ int main() {
 
             // Accept new connection
             if ((new_socket = accept(tcpSocket, (struct sockaddr *)&address, (socklen_t*)&addrlen)) < 0) {
-                cerr << "Accept failed" << endl;
+                // cerr << "Accept failed" << endl;
                 return -1;
             }
 

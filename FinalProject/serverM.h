@@ -29,6 +29,7 @@ struct Client {
     string status;
 };
 
+#define HOST "127.0.0.1"
 #define CLIENT_M_UDP_PORT 34288
 #define SERVER_M_TCP_PORT 35288
 #define SERVER_C_PORT 31288

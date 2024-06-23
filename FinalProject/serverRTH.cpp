@@ -154,7 +154,7 @@ int main() {
     // Create UDP socket
     udpSocket = socket(AF_INET, SOCK_DGRAM, 0);
     if (udpSocket < 0) {
-        cerr << "UDP socket creation error" << endl;
+        // cerr << "UDP socket creation error" << endl;
         return -1;
     }
 
@@ -162,11 +162,11 @@ int main() {
     memset(&serverRTHAddr, 0, sizeof(serverRTHAddr));
     serverRTHAddr.sin_family = AF_INET;
     serverRTHAddr.sin_port = htons(SERVER_RTH_PORT);
-    serverRTHAddr.sin_addr.s_addr = INADDR_ANY;
+    serverRTHAddr.sin_addr.s_addr = inet_addr(HOST);
 
     // Bind socket to port
     if (bind(udpSocket, (struct sockaddr *)&serverRTHAddr, sizeof(serverRTHAddr)) < 0) {
-        cerr << "Bind failed" << endl;
+        // cerr << "Bind failed" << endl;
         close(udpSocket);
         return -1;
     }
@@ -177,12 +177,12 @@ int main() {
     memset(&serverMAddr, 0, sizeof(serverMAddr));
     serverMAddr.sin_family = AF_INET;
     serverMAddr.sin_port = htons(CLIENT_M_PORT);
-    serverMAddr.sin_addr.s_addr = INADDR_ANY;
+    serverMAddr.sin_addr.s_addr = inet_addr(HOST);
 
     // Send boot message to main server
     string bootMsg = "boot";
     if (sendto(udpSocket, bootMsg.c_str(), bootMsg.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
-        cerr << "Error sending boot message" << endl;
+        // cerr << "Error sending boot message" << endl;
         return -1;
     }
     cout << "Server RTH has informed the main server." << endl;
@@ -191,7 +191,7 @@ int main() {
     while (true) {
         memset(buffer, 0, sizeof(buffer));  // clear buffer
         if (recvfrom(udpSocket, buffer, sizeof(buffer), 0, (struct sockaddr *)&serverMAddr, &serverMAddrLen) < 0) {
-            cerr << "Receive failed" << endl;
+            // cerr << "Receive failed" << endl;
             return -1;
         }
         
@@ -244,7 +244,7 @@ int main() {
             // Send availability response to main server
             response = packageMessage(response, "AvailabilityResponse", requestID);
             if (sendto(udpSocket, response.c_str(), response.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
-                cerr << "Error sending availability response" << endl;
+                // cerr << "Error sending availability response" << endl;
                 return -1;
             }
             cout << "The Server <RTH> finished sending the response to the main server." << endl;
@@ -256,12 +256,12 @@ int main() {
 
             // Send reservation response to main server
             if (sendto(udpSocket, response.c_str(), response.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
-                cerr << "Error sending reservation response" << endl;
+                // cerr << "Error sending reservation response" << endl;
                 return -1;
             }
             cout << "The Server <RTH> finished sending the response to the main server." << endl;
         } else {
-            cerr << "Invalid action" << endl;
+            // cerr << "Invalid action" << endl;
         }
 
     }

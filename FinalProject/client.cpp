@@ -30,7 +30,7 @@ string packageMessage (const string &message, const string &type) {
     return "MessageType=" + type + "&" + message;
 }
 
-// Offset each Engli halphabet letter and digit by a value n
+// Offset each English alphabet letter and digit by a value n
 // n corresponds to the character's position within the username or password from the left
 // Encryption is case sensitive
 // Encryption cyclically shifts for overflow
@@ -68,7 +68,8 @@ void clientLogin (int clientSocket) {
             string message = enc_username;
             message = packageMessage(message, "AuthenticationRequest");
             if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
-                cerr << "Error sending data" << endl;
+                // Error handling
+                // cerr << "Error sending data" << endl;
                 return;
             }
             cout << user.username << " sent an authentication request to the main server." << endl;
@@ -80,7 +81,7 @@ void clientLogin (int clientSocket) {
             string message = enc_username + " " + enc_password;
             message = packageMessage(message, "AuthenticationRequest");
             if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
-                cerr << "Error sending data" << endl;
+                // cerr << "Error sending data" << endl;
                 return;
             }
             cout << user.username << " sent an authentication request to the main server." << endl;
@@ -89,13 +90,13 @@ void clientLogin (int clientSocket) {
         // Receive authentication result from serverM
         char buffer[BUFFER_SIZE] = { 0 };
         if (recv(clientSocket, buffer, sizeof(buffer), 0) < 0) {
-            cerr << "Error receiving data" << endl;
+            // cerr << "Error receiving data" << endl;
             return;
         }
 
         // Check authentication result
         user.status = buffer;
-        cout << "The client received the response from the main server: " << user.status << endl;
+    
         user.status = parseMessage(user.status);
         if (user.status == "guest") {
             cout << "Welcome guest " << user.username << "!" << endl;
@@ -117,6 +118,7 @@ void clientLogin (int clientSocket) {
     }
 }
 
+// print availability result
 void printAvailability (const string &message, const string &day, const string &times) {
     string result = message;
     string delimiter = "\n";
@@ -152,7 +154,7 @@ void availabilityRequest (int clientSocket, const string &room, const string &da
 
     message = packageMessage(message, "AvailabilityRequest");
     if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
-        cerr << "Error sending data" << endl;
+        // cerr << "Error sending data" << endl;
         return;
     }
     cout << user.username << " sent an availability request to the main server." << endl;
@@ -160,7 +162,7 @@ void availabilityRequest (int clientSocket, const string &room, const string &da
     // Receive availability result from serverM
     char buffer[BUFFER_SIZE] = { 0 };
     if (recv(clientSocket, buffer, sizeof(buffer), 0) < 0) {
-        cerr << "Error receiving data" << endl;
+        // cerr << "Error receiving data" << endl;
         return;
     }
 
@@ -181,7 +183,7 @@ void reservationRequest (int clientSocket, const string &room, const string &day
 
     message = packageMessage(message, "ReservationRequest");
     if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
-        cerr << "Error sending data" << endl;
+        // cerr << "Error sending data" << endl;
         return;
     }
     cout << user.username << " sent a reservation request to the main server." << endl;
@@ -189,7 +191,7 @@ void reservationRequest (int clientSocket, const string &room, const string &day
     // Receive reservation result from serverM
     char buffer[BUFFER_SIZE] = { 0 };
     if (recv(clientSocket, buffer, sizeof(buffer), 0) < 0) {
-        cerr << "Error receiving data" << endl;
+        // cerr << "Error receiving data" << endl;
         return;
     }
 
@@ -232,6 +234,8 @@ void memberClient (int clientSocket, struct sockaddr_in clientAddr) {
 
             cout << "Please enter the day: ";
             getline(cin, day);
+
+            // Extra credit: If user doesn't enter the day
             if (day.empty()) {
                 day = "empty";
                 times = "empty";
@@ -242,6 +246,8 @@ void memberClient (int clientSocket, struct sockaddr_in clientAddr) {
                 getline(cin, times);
                 stringstream ss(times);
                 ss >> hour >> period;
+
+                // Extra credit: If user doesn't enter the time
                 if (hour.empty() || period.empty()) {
                     hour = "empty";
                     period = "empty";
@@ -250,7 +256,7 @@ void memberClient (int clientSocket, struct sockaddr_in clientAddr) {
 
             cout << "Would you like to search for the availability or make a reservation? ";
             cout << "(Enter “Availability” to search for the availability or Enter “Reservation” to make a reservation): ";
-            getline(cin, action);
+            getline(cin, action);   // <Availability/Reservation>
 
         } else {
             if (action == "Availability" || action == "availability") {
@@ -314,9 +320,8 @@ void guestClient(int clientSocket, struct sockaddr_in clientAddr) {
                 reservationRequest(clientSocket, room, day, times, hour, period, action, clientAddr);
 
                 return;
-                
             } else {
-                cout << "Invalid action." << endl;
+                //cout << "Invalid action." << endl;
                 return;
             }
         }
@@ -330,7 +335,7 @@ int main() {
     // Create TCP socket
     clientSocket = socket(AF_INET, SOCK_STREAM, 0);
     if (clientSocket < 0) {
-        cerr << "Socket creation error" << endl;
+        // cerr << "Socket creation error" << endl;
         return -1;
     }
 
@@ -338,11 +343,11 @@ int main() {
     memset(&serverAddr, 0, sizeof(serverAddr));
     serverAddr.sin_family = AF_INET;
     serverAddr.sin_port = htons(SERVER_M_TCP_PORT);
-    serverAddr.sin_addr.s_addr = INADDR_ANY;
+    serverAddr.sin_addr.s_addr = inet_addr(HOST);
 
     // Connect to serverM
     if (connect(clientSocket, (struct sockaddr *)&serverAddr, sizeof(serverAddr)) < 0) {
-        cerr << "Connection failed" << endl;
+        // cerr << "Connection failed" << endl;
         return -1;
     }
 
@@ -364,7 +369,7 @@ int main() {
 
     // Close socket
     close(clientSocket);
-    cout << "Disconnected from server. Client exiting..." << endl;
+    // cout << "Disconnected from server. Client exiting..." << endl;
 
     return 0;
 }
