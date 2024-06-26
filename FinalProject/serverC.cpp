@@ -39,6 +39,7 @@ string packageMessage (const string &message, const string &type, const string &
     return "MessageType=" + type + "&" + message + "*" + requestID;
 }
 
+// Referenced (1) login code for lines 43~64
 string authenticate (const string &username, const string &password) {
     // Go through members.txt and check if username and password are valid
     ifstream file("member.txt");
@@ -63,6 +64,7 @@ string authenticate (const string &username, const string &password) {
     return "user_not_found";
 }
 
+// Referenced (3) UDP server code for lines 69~144
 int main() {
     int udpSocket;
     struct sockaddr_in serverCAddr, serverMAddr;
@@ -98,7 +100,7 @@ int main() {
     serverMAddr.sin_port = htons(CLIENT_M_PORT);
     serverMAddr.sin_addr.s_addr = inet_addr(HOST);
 
-    // Send boot message to main server
+    // Send boot message to main server, Referenced (4) for lines 104~109
     string bootMsg = "boot";
     if (sendto(udpSocket, bootMsg.c_str(), bootMsg.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
         // cerr << "Send failed" << endl;

@@ -8,13 +8,18 @@
 
 #include <iostream>
 #include <fstream>
-#include <string>
-#include <cstring>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
+#include <stdio.h>
+#include <stdlib.h>
 #include <unistd.h>
 #include <errno.h>
+#include <string.h>
+#include <netdb.h>
+#include <sys/types.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <sys/wait.h>
+#include <cstring>
 #include <sstream>
 
 using namespace std;
@@ -34,7 +39,7 @@ string parseMessageType (const string &data);
 string parseMessage (const string &data);
 string packageMessage (const string &message, const string &type);
 string encrypt (const string &text);
-void clientLogin (int clientSocket);
+void clientLogin (int clientSocket, struct sockaddr_in clientAddr);
 void printAvailability (const string &message, const string &day, const string &times);
 void availabilityRequest (int clientSocket, const string &room, const string &day, const string &times, const string &hour, const string &period, 
                             const string &action, struct sockaddr_in clientAddr);

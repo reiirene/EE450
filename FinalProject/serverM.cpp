@@ -286,11 +286,11 @@ void handleServer (int udpSocket, struct sockaddr_in serverCAddr, struct sockadd
     }
 }
 
-int main() {
+int main() {    // Referenced (5) + (7) for lines 290~468
     int sd, max_sd;
     struct sockaddr_in serverCAddr, serverRTHAddr, serverEEBAddr, tcpAddr, udpAddr;
 
-    signal(SIGINT, (__sighandler_t)([](int signum) {
+    signal(SIGINT, (__sighandler_t)([](int signum) {    // Referenced (8) for lines 293~308
         // Debugging: shows information about the interrupt signal
         //cout << "\nInterrupt signal (" << signum << ") received. Shutting down the server..." << endl;
     
@@ -392,7 +392,7 @@ int main() {
 
     // Main server loop
     while (true) {
-        // Clear the socket set
+        // Clear the socket set, Referenced (6) for lines 396~400
         FD_ZERO(&readfds);
 
         // Add TCP socket to set

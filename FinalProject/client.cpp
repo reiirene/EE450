@@ -30,10 +30,7 @@ string packageMessage (const string &message, const string &type) {
     return "MessageType=" + type + "&" + message;
 }
 
-// Offset each English alphabet letter and digit by a value n
-// n corresponds to the character's position within the username or password from the left
-// Encryption is case sensitive
-// Encryption cyclically shifts for overflow
+// Encrypts the username and password
 string encrypt(const string &text) {
     string encrypted = text;
     for (size_t i = 0; i < text.length(); ++i) {
@@ -51,8 +48,9 @@ string encrypt(const string &text) {
 }
 
 // Client login to determine if user is member or guest
-void clientLogin (int clientSocket) {
+void clientLogin (int clientSocket, struct sockaddr_in clientAddr) {
     string enc_username, enc_password;
+    int clientPort = ntohs(clientAddr.sin_port);
 
     cout << "Please enter the username: ";
     getline(cin, user.username);
@@ -72,7 +70,7 @@ void clientLogin (int clientSocket) {
                 // cerr << "Error sending data" << endl;
                 return;
             }
-            cout << user.username << " sent an authentication request to the main server." << endl;
+            cout << user.username << " sent a guest request to the main server using TCP over port " << clientPort << endl;
         } else {
             // Encrypt password
             enc_password = encrypt(user.password);
@@ -80,7 +78,7 @@ void clientLogin (int clientSocket) {
             // Send username and password to serverM
             string message = enc_username + " " + enc_password;
             message = packageMessage(message, "AuthenticationRequest");
-            if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
+            if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {   // Referenced (2) for lines 80~92
                 // cerr << "Error sending data" << endl;
                 return;
             }
@@ -122,7 +120,7 @@ void clientLogin (int clientSocket) {
 void printAvailability (const string &message, const string &day, const string &times) {
     string result = message;
     string delimiter = "\n";
-
+    cout << day << " " << times << endl;
     if (day == "empty" && times == "empty") {
         cout << "The request room is available at the following time slots:" << endl;
     } else if (day != "empty" && times == "empty") {
@@ -161,7 +159,7 @@ void availabilityRequest (int clientSocket, const string &room, const string &da
 
     // Receive availability result from serverM
     char buffer[BUFFER_SIZE] = { 0 };
-    if (recv(clientSocket, buffer, sizeof(buffer), 0) < 0) {
+    if (recv(clientSocket, buffer, sizeof(buffer), 0) < 0) {    // Referenced (2) for lines 161~168
         // cerr << "Error receiving data" << endl;
         return;
     }
@@ -182,7 +180,7 @@ void reservationRequest (int clientSocket, const string &room, const string &day
     string message = room + " " + day + " " + hour + " " + period + " " + action;
 
     message = packageMessage(message, "ReservationRequest");
-    if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {
+    if (send(clientSocket, message.c_str(), message.size(), 0) < 0) {   // Referenced (2) for lines 182~193
         // cerr << "Error sending data" << endl;
         return;
     }
@@ -249,6 +247,7 @@ void memberClient (int clientSocket, struct sockaddr_in clientAddr) {
 
                 // Extra credit: If user doesn't enter the time
                 if (hour.empty() || period.empty()) {
+                    times = "empty";
                     hour = "empty";
                     period = "empty";
                 }
@@ -302,6 +301,7 @@ void guestClient(int clientSocket, struct sockaddr_in clientAddr) {
                 stringstream ss(times);
                 ss >> hour >> period;
                 if (hour.empty() || period.empty()) {
+                    times = "empty";
                     hour = "empty";
                     period = "empty";
                 }
@@ -328,6 +328,7 @@ void guestClient(int clientSocket, struct sockaddr_in clientAddr) {
     }
 }
 
+// Referenced (2) TCP socket programming code for lines 332~375
 int main() {
     int clientSocket;
     struct sockaddr_in serverAddr, clientAddr;
@@ -356,7 +357,7 @@ int main() {
     while (true) {
         // Client Login
         if (user.status == "") {
-            clientLogin(clientSocket);
+            clientLogin(clientSocket, clientAddr);
         }
 
         // Room reservation system

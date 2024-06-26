@@ -96,7 +96,7 @@ string searchAvailability (int udpSocket, const string &room, const string &day,
         } else if (day != "empty" && times == "empty") {    // if day is not empty and time is empty
             if (fileRoom == room && fileDay == day) {
                 if (reservedRooms.empty()) {
-                    result += fileDay + ", " + fileTime + "\n";
+                    result += fileTime + "\n";
                 } else {
                     for (const string &reservedRoom : reservedRooms) {  // check if the room is reserved
                         if (reservedRoom != line) {
@@ -144,6 +144,7 @@ string searchAvailability (int udpSocket, const string &room, const string &day,
     return result;
 }
 
+// Referenced (3) UDP server code for lines 149~197, 245~273
 int main() {
     int udpSocket;
     struct sockaddr_in serverRTHAddr, serverMAddr;
@@ -179,7 +180,7 @@ int main() {
     serverMAddr.sin_port = htons(CLIENT_M_PORT);
     serverMAddr.sin_addr.s_addr = inet_addr(HOST);
 
-    // Send boot message to main server
+    // Send boot message to main server, Referenced (4) for lines 184~189
     string bootMsg = "boot";
     if (sendto(udpSocket, bootMsg.c_str(), bootMsg.size(), 0, (struct sockaddr *)&serverMAddr, sizeof(serverMAddr)) < 0) {
         // cerr << "Error sending boot message" << endl;
